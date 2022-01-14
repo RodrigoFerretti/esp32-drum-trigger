@@ -1,93 +1,100 @@
 #include "Arduino.h"
 #include "driver/i2s.h"
+
 const i2s_port_t I2S_PORT = I2S_NUM_0;
 
 int rxbuf[128], txbuf[128];
 
-float l_in[64], r_in[64];
-float l_out[64], r_out[64];
-
 size_t readsize = 0;
 
-int EMA_S = 0;
-int highpass;
-
-int piezoPin = 26;
-float ratio = 1;
-
-int piezoValueBefore;
-int piezoValueAfter = 0;
-
-int timeBefore;
-int timeAfter = 0;
-
-int timeGateBefore;
-int timeGateAfter = 0;
-
-int timeDifference;
-
-float toRemove;
-
-int piezoThreshold = 0;
-
-byte gating = LOW;
-
-int filter(int sample, float EMA_a)
+struct Piezo
 {
-	EMA_S = (EMA_a * sample) + ((1 - EMA_a) * EMA_S);
-	highpass = sample - EMA_S;
-	return highpass;
-}
+	int sample;
+	int sampleBefore = 0;
+	int hitTime;
+	int hitTimeBefore = 0;
+	const int threshold = 0;
+	const int timeResolution = 40;
+	const int pin = 26;
+};
 
-void ratioGate()
+Piezo piezo;
+
+struct Gate
 {
-	if (gating == HIGH)
+	int hitTime;
+	int time;
+	int timeDifference;
+	float outputRatio = 1;
+	float ratioFloor = 0.2;
+	int timeBase = 700;
+	int timeFloor = 900;
+	byte isActive = LOW;
+};
+
+Gate gate;
+
+struct HighPass
+{
+	int outputSample;
+	float EMA_s = 0;
+	float EMA_a = 0.04;
+};
+
+HighPass highPass;
+
+HighPass filter(int inputSample, HighPass _highPass)
+{
+	_highPass.EMA_s = (_highPass.EMA_a * inputSample) + ((1 - _highPass.EMA_a) * _highPass.EMA_s);
+	_highPass.outputSample = inputSample - _highPass.EMA_s;
+
+	if (_highPass.outputSample < 0)
 	{
-		timeGateAfter = millis();
-		timeDifference = timeGateAfter - timeGateBefore;
-		if (timeDifference < 700)
+		_highPass.outputSample = 0;
+	}
+
+	return _highPass;
+};
+
+void gating()
+{
+	highPass = filter(analogRead(piezo.pin), highPass);
+	piezo.sample = highPass.outputSample;
+
+	highPass = filter(analogRead(piezo.pin), highPass);
+	piezo.sample = highPass.outputSample;
+
+	if ((piezo.sample > 0) && (piezo.sampleBefore == 0) && (piezo.sample > piezo.threshold))
+	{
+		piezo.hitTime = millis();
+
+		if (piezo.hitTime - piezo.hitTimeBefore > piezo.timeResolution)
 		{
-			toRemove = (float)timeDifference / 900;
-			ratio = (float)1 - toRemove;
+			gate.hitTime = millis();
+			gate.isActive = HIGH;
+			piezo.hitTimeBefore = piezo.hitTime;
+			Serial.println(piezo.sample);
+		}
+
+		piezo.hitTimeBefore = piezo.hitTime;
+	}
+
+	piezo.sampleBefore = piezo.sample;
+
+	if (gate.isActive == HIGH)
+	{
+		gate.time = millis();
+		gate.timeDifference = gate.time - gate.hitTime;
+		if (gate.timeDifference < gate.timeBase)
+		{
+			gate.outputRatio = (float)1 - ((float)gate.timeDifference / gate.timeFloor);
 		}
 		else
 		{
-			ratio = 0.20;
-			gating = LOW;
+			gate.outputRatio = gate.ratioFloor;
+			gate.isActive = LOW;
 		}
 	}
-}
-
-void piezoHit()
-{
-	timeGateBefore = millis();
-	gating = HIGH;
-}
-
-void readPiezo()
-{
-	piezoValueBefore = filter(analogRead(piezoPin), 0.04);
-	if (piezoValueBefore < 0)
-	{
-		piezoValueBefore = 0;
-	}
-	piezoValueBefore = filter(piezoValueBefore, 0.04);
-	if (piezoValueBefore < 0)
-	{
-		piezoValueBefore = 0;
-	}
-	if ((piezoValueBefore > 0) && (piezoValueAfter == 0) && (piezoValueBefore > piezoThreshold))
-	{
-		timeBefore = millis();
-		if (timeBefore - timeAfter > 40)
-		{
-			piezoHit();
-			timeAfter = timeBefore;
-			Serial.println(piezoValueBefore);
-		}
-		timeAfter = timeBefore;
-	}
-	piezoValueAfter = piezoValueBefore;
 }
 
 void setup()
@@ -95,19 +102,17 @@ void setup()
 	Serial.begin(115200);
 	esp_err_t err;
 
-	// The I2S config as per the example
 	const i2s_config_t i2s_config = {
-		.mode = i2s_mode_t(I2S_MODE_MASTER | I2S_MODE_TX | I2S_MODE_RX), // Receive, not transfer
-		.sample_rate = 44100,											 // 16KHz
-		.bits_per_sample = I2S_BITS_PER_SAMPLE_24BIT,					 // could only get it to work with 32bits
-		.channel_format = I2S_CHANNEL_FMT_RIGHT_LEFT,					 // use right channel
+		.mode = i2s_mode_t(I2S_MODE_MASTER | I2S_MODE_TX | I2S_MODE_RX),
+		.sample_rate = 44100,
+		.bits_per_sample = I2S_BITS_PER_SAMPLE_24BIT,
+		.channel_format = I2S_CHANNEL_FMT_RIGHT_LEFT,
 		.communication_format = i2s_comm_format_t(I2S_COMM_FORMAT_I2S | I2S_COMM_FORMAT_I2S_MSB),
-		.intr_alloc_flags = ESP_INTR_FLAG_LEVEL1, // Interrupt level 1
-		.dma_buf_count = 8,						  // number of buffers
+		.intr_alloc_flags = ESP_INTR_FLAG_LEVEL1,
+		.dma_buf_count = 8,
 		.dma_buf_len = 256,
 	};
 
-	// The pin config as per the setup
 	const i2s_pin_config_t pin_config = {
 		.bck_io_num = 19,	// Serial Clock (SCK)
 		.ws_io_num = 5,		// Word Select (WS)
@@ -115,8 +120,6 @@ void setup()
 		.data_in_num = 21	// Serial Data (SD)
 	};
 
-	// Configuring the I2S driver and pins.
-	// This function must be called before any I2S driver read/write operations.
 	err = i2s_driver_install(I2S_PORT, &i2s_config, 0, NULL);
 	if (err != ESP_OK)
 	{
@@ -124,6 +127,7 @@ void setup()
 		while (true)
 			;
 	}
+
 	err = i2s_set_pin(I2S_PORT, &pin_config);
 	if (err != ESP_OK)
 	{
@@ -131,6 +135,7 @@ void setup()
 		while (true)
 			;
 	}
+
 	Serial.println("I2S driver installed.");
 
 	REG_WRITE(PIN_CTRL, 0b111111110000);
@@ -139,40 +144,18 @@ void setup()
 
 void loop()
 {
-	readPiezo();
-
-	ratioGate();
-
-	//read 256 samples (128 stereo samples)
-	esp_err_t rxfb = i2s_read(I2S_NUM_0, &rxbuf[0], 128 * 4, &readsize, 1000);
+	gating();
+	
+	esp_err_t rxfb = i2s_read(I2S_PORT, &rxbuf[0], 128 * 4, &readsize, portMAX_DELAY);
 	if (rxfb == ESP_OK && readsize == 128 * 4)
 	{
 
-		//extract stereo samples to mono buffers
-		int y = 0;
 		for (int i = 0; i < 128; i = i + 2)
 		{
-			l_in[y] = (float)rxbuf[i];
-			r_in[y] = (float)rxbuf[i + 1];
-			y++;
+			txbuf[i] = (int)rxbuf[i] * gate.outputRatio;
+			txbuf[i + 1] = (int)rxbuf[i + 1] * gate.outputRatio;
 		}
 
-		for (int i = 0; i < 64; i++)
-		{
-
-			l_out[i] = l_in[i] * ratio;
-			r_out[i] = r_in[i] * ratio;
-		}
-
-		//merge two l and r buffers into a mixed buffer and write back to HW
-		y = 0;
-		for (int i = 0; i < 64; i++)
-		{
-			txbuf[y] = (int)l_out[i];
-			txbuf[y + 1] = (int)r_out[i];
-			y = y + 2;
-		}
-
-		i2s_write(I2S_NUM_0, &txbuf[0], 128 * 4, &readsize, 1000);
+		i2s_write(I2S_PORT, &txbuf[0], 128 * 4, &readsize, portMAX_DELAY);
 	}
 }
