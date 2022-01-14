@@ -1,47 +1,79 @@
 #include "Arduino.h"
 #include "driver/i2s.h"
 
-const i2s_port_t I2S_PORT = I2S_NUM_0;
+struct i2s_t
+{
+	i2s_port_t 	port;
+	int 		rxBuf[128];
+	int 		txBuf[128];
+	int 		size;
+	size_t 		readSize;
+};
 
-int rxbuf[128], txbuf[128];
-
-size_t readsize = 0;
+i2s_t i2s = {
+	.port = I2S_NUM_0,
+	.rxBuf = {},
+	.txBuf = {},
+	.size = 128 * sizeof(uint16_t),
+	.readSize = 0,
+};
 
 struct Piezo
 {
 	int sample;
-	int sampleBefore = 0;
+	int sampleBefore;
 	int hitTime;
-	int hitTimeBefore = 0;
-	const int threshold = 0;
-	const int timeResolution = 40;
-	const int pin = 26;
+	int hitTimeBefore;
+	int threshold;
+	int timeResolution;
+	int pin;
 };
 
-Piezo piezo;
+Piezo piezo = {
+	.sample = 0,
+	.sampleBefore = 0,
+	.hitTime = 0,
+	.hitTimeBefore = 0,
+	.threshold = 0,
+	.timeResolution = 40,
+	.pin = 26,
+};
 
 struct Gate
 {
-	int hitTime;
-	int time;
-	int timeDifference;
-	float outputRatio = 1;
-	float ratioFloor = 0.2;
-	int timeBase = 700;
-	int timeFloor = 900;
-	byte isActive = LOW;
+	int 	hitTime;
+	int 	time;
+	int 	timeDifference;
+	float 	outputRatio;
+	float 	ratioFloor;
+	int 	timeBase;
+	int 	timeFloor;
+	byte 	isActive;
 };
 
-Gate gate;
+Gate gate = {
+	.hitTime = 0,
+	.time = 0,
+	.timeDifference = 0,
+	.outputRatio = 1,
+	.ratioFloor = 0.2,
+	.timeBase = 700,
+	.timeFloor = 900,
+	.isActive = LOW,
+};
 
 struct HighPass
 {
-	int outputSample;
-	float EMA_s = 0;
-	float EMA_a = 0.04;
+	int 	outputSample;
+	float 	EMA_s;
+	float 	EMA_a;
 };
 
-HighPass highPass;
+HighPass highPass = {
+	.outputSample = 0,
+	.EMA_s = 0,
+	.EMA_a = 0.04,
+};
 
 HighPass filter(int inputSample, HighPass _highPass)
 {
@@ -105,7 +137,7 @@ void setup()
 	const i2s_config_t i2s_config = {
 		.mode = i2s_mode_t(I2S_MODE_MASTER | I2S_MODE_TX | I2S_MODE_RX),
 		.sample_rate = 44100,
-		.bits_per_sample = I2S_BITS_PER_SAMPLE_24BIT,
+		.bits_per_sample = I2S_BITS_PER_SAMPLE_16BIT,
 		.channel_format = I2S_CHANNEL_FMT_RIGHT_LEFT,
 		.communication_format = i2s_comm_format_t(I2S_COMM_FORMAT_I2S | I2S_COMM_FORMAT_I2S_MSB),
 		.intr_alloc_flags = ESP_INTR_FLAG_LEVEL1,
@@ -120,7 +152,7 @@ void setup()
 		.data_in_num = 21	// Serial Data (SD)
 	};
 
-	err = i2s_driver_install(I2S_PORT, &i2s_config, 0, NULL);
+	err = i2s_driver_install(i2s.port, &i2s_config, 0, NULL);
 	if (err != ESP_OK)
 	{
 		Serial.printf("Failed installing driver: %d\n", err);
@@ -128,7 +160,7 @@ void setup()
 			;
 	}
 
-	err = i2s_set_pin(I2S_PORT, &pin_config);
+	err = i2s_set_pin(i2s.port, &pin_config);
 	if (err != ESP_OK)
 	{
 		Serial.printf("Failed setting pin: %d\n", err);
@@ -145,17 +177,17 @@ void setup()
 void loop()
 {
 	gating();
-	
-	esp_err_t rxfb = i2s_read(I2S_PORT, &rxbuf[0], 128 * 4, &readsize, portMAX_DELAY);
-	if (rxfb == ESP_OK && readsize == 128 * 4)
+
+	esp_err_t rxfb = i2s_read(i2s.port, &i2s.rxBuf[0], i2s.size, &i2s.readSize, portMAX_DELAY);
+	if (rxfb == ESP_OK && i2s.readSize == i2s.size)
 	{
 
 		for (int i = 0; i < 128; i = i + 2)
 		{
-			txbuf[i] = (int)rxbuf[i] * gate.outputRatio;
-			txbuf[i + 1] = (int)rxbuf[i + 1] * gate.outputRatio;
+			i2s.txBuf[i] = (int)i2s.rxBuf[i] * gate.outputRatio;
+			i2s.txBuf[i + 1] = (int)i2s.rxBuf[i + 1] * gate.outputRatio;
 		}
 
-		i2s_write(I2S_PORT, &txbuf[0], 128 * 4, &readsize, portMAX_DELAY);
+		i2s_write(i2s.port, &i2s.txBuf[0], i2s.size, &i2s.readSize, portMAX_DELAY);
 	}
 }
