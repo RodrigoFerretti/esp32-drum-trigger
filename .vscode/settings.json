@@ -19,6 +19,8 @@
         "streambuf": "cpp",
         "array": "cpp",
         "utility": "cpp",
-        "typeinfo": "cpp"
+        "typeinfo": "cpp",
+        "ctime": "cpp",
+        "numeric": "cpp"
     }
 }
