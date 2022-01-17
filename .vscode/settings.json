@@ -21,6 +21,9 @@
         "utility": "cpp",
         "typeinfo": "cpp",
         "ctime": "cpp",
-        "numeric": "cpp"
+        "numeric": "cpp",
+        "exception": "cpp",
+        "iostream": "cpp",
+        "new": "cpp"
     }
 }

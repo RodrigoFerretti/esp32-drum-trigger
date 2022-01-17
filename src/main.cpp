@@ -4,7 +4,7 @@
 struct i2s_t
 {
 	i2s_port_t port;
-	esp_err_t error;
+	esp_err_t status;
 	i2s_bits_per_sample_t bit_depth;
 	int sample_rate;
 	int dma_buff_count;
@@ -22,7 +22,7 @@ struct i2s_t
 
 i2s_t i2s = {
 	.port = I2S_NUM_0,
-	.error = ESP_OK,
+	.status = ESP_OK,
 	.bit_depth = (i2s_bits_per_sample_t)24,
 	.sample_rate = 44100,
 	.dma_buff_count = 8,
@@ -73,7 +73,7 @@ gate_t gate_piezo = {
 	.start_time = 0,
 	.current_time = 0,
 	.time_difference = 0,
-	.threshold = 0,
+	.threshold = 10,
 	.ratio_floor = 0.2,
 	.time_base = 700,
 	.time_floor = 900,
@@ -82,13 +82,11 @@ gate_t gate_piezo = {
 
 struct high_pass_t
 {
-	int output_sample;
-	float EMA_s;
+	int EMA_s;
 	float EMA_a;
 };
 
 high_pass_t high_pass_piezo = {
-	.output_sample = 0,
 	.EMA_s = 0,
 	.EMA_a = 0.04,
 };
@@ -113,20 +111,20 @@ void configure_i2s()
 		.data_in_num = i2s.din_pin,
 	};
 
-	i2s.error = i2s_driver_install(i2s.port, &i2s_config, 0, NULL);
+	i2s.status = i2s_driver_install(i2s.port, &i2s_config, 0, NULL);
 
-	if (i2s.error != ESP_OK)
+	if (i2s.status != ESP_OK)
 	{
-		Serial.printf("Failed installing driver: %d\n", i2s.error);
+		Serial.printf("Failed installing driver: %d\n", i2s.status);
 		while (true)
 			;
 	}
 
-	i2s.error = i2s_set_pin(i2s.port, &pin_config);
+	i2s.status = i2s_set_pin(i2s.port, &pin_config);
 
-	if (i2s.error != ESP_OK)
+	if (i2s.status != ESP_OK)
 	{
-		Serial.printf("Failed setting pin: %d\n", i2s.error);
+		Serial.printf("Failed setting pin: %d\n", i2s.status);
 		while (true)
 			;
 	}
@@ -142,24 +140,21 @@ void setup()
 {
 	Serial.begin(115200);
 
-	configure_i2s();
+	high_pass_piezo.EMA_s = analogRead(piezo.pin);
+
+	// configure_i2s();
 }
 
-void apply_high_pass(high_pass_t high_pass, int *sample)
+void apply_high_pass(high_pass_t *high_pass, int *sample)
 {
-	high_pass.EMA_s = (high_pass.EMA_a * *sample) + ((1 - high_pass.EMA_a) * high_pass.EMA_s);
+	(*high_pass).EMA_s = ((*high_pass).EMA_a * *sample) + ((1 - (*high_pass).EMA_a) * (*high_pass).EMA_s);
 
-	*sample = *sample - high_pass.EMA_s;
-
-	if (*sample < 0)
-	{
-		*sample = 0;
-	}
+	*sample = *sample - (*high_pass).EMA_s;
 };
 
 void apply_gate(gate_t gate, int *read_sample, int *read_sample_before, int *sample_to_apply)
 {
-	if ((*read_sample > gate.threshold) && (*read_sample_before == gate.threshold))
+	if ((*read_sample > 0) && (*read_sample_before == 0))
 	{
 		gate.sample_hit_time = millis();
 
@@ -193,9 +188,9 @@ void apply_gate(gate_t gate, int *read_sample, int *read_sample_before, int *sam
 
 void stream_i2s()
 {
-	i2s.error = i2s_read(i2s.port, &i2s.rx_buffer[0], i2s.size_to_read, &i2s.size_read, portMAX_DELAY);
+	i2s.status = i2s_read(i2s.port, &i2s.rx_buffer[0], i2s.size_to_read, &i2s.size_read, portMAX_DELAY);
 
-	if (i2s.error == ESP_OK && i2s.size_read == i2s.size_to_read)
+	if (i2s.status == ESP_OK && i2s.size_read == i2s.size_to_read)
 	{
 
 		for (int i = 0; i < 128; i = i + 2)
@@ -212,11 +207,13 @@ void loop()
 {
 	piezo.sample = analogRead(piezo.pin);
 
-	apply_high_pass(high_pass_piezo, &piezo.sample);
+	apply_high_pass(&high_pass_piezo, &piezo.sample);
 
-	apply_gate(gate_piezo, &piezo.sample, &piezo.sample_before, &i2s.output_ratio);
+	if (piezo.sample > 50) Serial.println(piezo.sample);
 
-	stream_i2s();
+	// apply_gate(gate_piezo, &piezo.sample, &piezo.sample_before, &i2s.output_ratio);
+
+	// stream_i2s();
 
 	piezo.sample_before = piezo.sample;
 }
