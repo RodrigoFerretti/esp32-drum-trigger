@@ -73,7 +73,7 @@ gate_t gate_piezo = {
 	.start_time = 0,
 	.current_time = 0,
 	.time_difference = 0,
-	.threshold = 10,
+	.threshold = 0,
 	.ratio_floor = 0.2,
 	.time_base = 700,
 	.time_floor = 900,
@@ -88,7 +88,7 @@ struct high_pass_t
 
 high_pass_t high_pass_piezo = {
 	.EMA_s = 0,
-	.EMA_a = 0.04,
+	.EMA_a = 0.2,
 };
 
 void configure_i2s()
@@ -154,7 +154,7 @@ void apply_high_pass(high_pass_t *high_pass, int *sample)
 
 void apply_gate(gate_t gate, int *read_sample, int *read_sample_before, int *sample_to_apply)
 {
-	if ((*read_sample > 0) && (*read_sample_before == 0))
+	if ((*read_sample > gate.threshold) && (*read_sample_before == gate.threshold))
 	{
 		gate.sample_hit_time = millis();
 
@@ -209,11 +209,8 @@ void loop()
 
 	apply_high_pass(&high_pass_piezo, &piezo.sample);
 
-	if (piezo.sample > 50) Serial.println(piezo.sample);
-
-	// apply_gate(gate_piezo, &piezo.sample, &piezo.sample_before, &i2s.output_ratio);
-
-	// stream_i2s();
+	if (piezo.sample > 100) Serial.println(piezo.sample);
 
 	piezo.sample_before = piezo.sample;
+
 }
