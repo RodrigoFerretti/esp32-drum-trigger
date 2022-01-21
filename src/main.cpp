@@ -1,5 +1,6 @@
 #include "Arduino.h"
 #include "driver/i2s.h"
+#include "hellodrum.h"
 
 struct i2s_t
 {
@@ -41,42 +42,52 @@ i2s_t i2s = {
 struct piezo_t
 {
 	int sample;
-	int sample_before;
 	int pin;
 };
 
 piezo_t piezo = {
 	.sample = 0,
-	.sample_before = 0,
 	.pin = 26,
+};
+
+struct gate_scan_t
+{
+	int sample_threshold;
+	int peak_sample;
+	int loop_count;
+	int start_time;
+	int elapsed_time;
+	int max_time;
+};
+
+struct gate_active_t
+{
+	int start_time;
+	int elapsed_time;
+	int max_time;
 };
 
 struct gate_t
 {
-	int sample_hit_time;
-	int sample_hit_time_before;
-	int sample_time_resolution;
-	int start_time;
-	int current_time;
-	int time_difference;
-	int threshold;
-	float ratio_floor;
-	int time_base;
-	int time_floor;
+	gate_scan_t scan;
+	gate_active_t active;
 	bool is_active;
 };
 
 gate_t gate_piezo = {
-	.sample_hit_time = 0,
-	.sample_hit_time_before = 0,
-	.sample_time_resolution = 40,
-	.start_time = 0,
-	.current_time = 0,
-	.time_difference = 0,
-	.threshold = 0,
-	.ratio_floor = 0.2,
-	.time_base = 700,
-	.time_floor = 900,
+	.scan = {
+		.sample_threshold = 0,
+		.peak_sample = 0,
+		.loop_count = 0,
+		.start_time = 0,
+		.elapsed_time = 0,
+		.max_time = 0,
+	},
+	.active = {
+		.start_time = 0,
+		.elapsed_time = 0,
+		.max_time = 700,
+	},
 	.is_active = false,
 };
 
@@ -139,10 +150,7 @@ void configure_i2s()
 void setup()
 {
 	Serial.begin(115200);
-
-	high_pass_piezo.EMA_s = analogRead(piezo.pin);
-
-	// configure_i2s();
+	configure_i2s();
 }
 
 void apply_high_pass(high_pass_t *high_pass, int *sample)
@@ -152,35 +160,48 @@ void apply_high_pass(high_pass_t *high_pass, int *sample)
 	*sample = *sample - (*high_pass).EMA_s;
 };
 
-void apply_gate(gate_t gate, int *read_sample, int *read_sample_before, int *sample_to_apply)
+void apply_gate(gate_t gate, int *scan_sample, int *apply_sample)
 {
-	if ((*read_sample > gate.threshold) && (*read_sample_before == gate.threshold))
+	if (*scan_sample > gate.scan.sample_threshold)
 	{
-		gate.sample_hit_time = millis();
-
-		if (gate.sample_hit_time - gate.sample_hit_time_before > gate.sample_time_resolution)
+		if (gate.scan.loop_count == 0)
 		{
-			gate.start_time = millis();
-			gate.is_active = true;
-			Serial.println(*read_sample);
+			gate.scan.start_time = millis();
+			gate.scan.peak_sample = *scan_sample;
 		}
 
-		gate.sample_hit_time_before = gate.sample_hit_time;
+		gate.scan.elapsed_time = millis() - gate.scan.start_time;
+
+		if (gate.scan.elapsed_time < gate.scan.max_time)
+		{
+			if (*scan_sample > gate.scan.peak_sample)
+			{
+				gate.scan.peak_sample = *scan_sample;
+			}
+
+			gate.scan.loop_count++;
+		}
+
+		else
+		{
+			gate.scan.loop_count = 0;
+			gate.active.start_time = millis();
+			gate.is_active = true;
+		}
 	}
 
 	if (gate.is_active)
 	{
-		gate.current_time = millis();
+		gate.active.elapsed_time = millis() - gate.active.start_time;
 
-		gate.time_difference = gate.current_time - gate.start_time;
-
-		if (gate.time_difference < gate.time_base)
+		if (gate.active.elapsed_time < gate.active.max_time)
 		{
-			*sample_to_apply = (float)1 - (gate.time_difference / gate.time_floor);
+			*apply_sample = (float)1 - (gate.active.elapsed_time / gate.active.max_time);
 		}
+
 		else
 		{
-			*sample_to_apply = gate.ratio_floor;
+			*apply_sample = 0;
 			gate.is_active = false;
 		}
 	}
@@ -206,11 +227,6 @@ void stream_i2s()
 void loop()
 {
 	piezo.sample = analogRead(piezo.pin);
-
 	apply_high_pass(&high_pass_piezo, &piezo.sample);
-
-	if (piezo.sample > 100) Serial.println(piezo.sample);
-
-	piezo.sample_before = piezo.sample;
-
+	apply_gate(gate_piezo, &piezo.sample, &i2s.output_ratio);
 }
