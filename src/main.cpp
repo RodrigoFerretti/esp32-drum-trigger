@@ -56,10 +56,13 @@ struct gate_t
 	int loop_count;
 	int start_scan_time;
 	int elapsed_scan_time;
+	int midi_out;
+	float sensitivity;
 	int resolution;
 	int start_active_time;
 	int elapsed_active_time;
 	int release;
+	int range;
 	bool is_active;
 };
 
@@ -69,10 +72,13 @@ gate_t gate_piezo = {
 	.loop_count = 0,
 	.start_scan_time = 0,
 	.elapsed_scan_time = 0,
+	.midi_out = 0,
+	.sensitivity = 0.75,
 	.resolution = 40,
 	.start_active_time = 0,
 	.elapsed_active_time = 0,
 	.release = 0,
+	.range = 0,
 	.is_active = false,
 };
 
@@ -170,6 +176,7 @@ void apply_gate(gate_t gate, int *scan_sample, int *apply_sample)
 			gate.loop_count = 0;
 			gate.start_active_time = millis();
 			gate.is_active = true;
+			gate.midi_out = (float)((gate.peak_sample * gate.sensitivity) + (4096 * (1 - gate.sensitivity)) / 32);
 		}
 	}
 
