@@ -56,9 +56,10 @@ struct gate_t
 	int loop_count;
 	int start_scan_time;
 	int elapsed_scan_time;
+	int max_scan_time;
+	int retrigger_time;
 	int midi_out;
 	float sensitivity;
-	int resolution;
 	int start_active_time;
 	int elapsed_active_time;
 	int release;
@@ -72,9 +73,10 @@ gate_t gate_piezo = {
 	.loop_count = 0,
 	.start_scan_time = 0,
 	.elapsed_scan_time = 0,
+	.max_scan_time = 20,
+	.retrigger_time = 20,
 	.midi_out = 0,
 	.sensitivity = 0.75,
-	.resolution = 40,
 	.start_active_time = 0,
 	.elapsed_active_time = 0,
 	.release = 0,
@@ -153,6 +155,11 @@ void apply_gate(gate_t gate, int *scan_sample, int *apply_sample)
 {
 	if (*scan_sample > gate.threshold)
 	{
+		if (gate.start_active_time - millis() < gate.retrigger_time)
+		{
+			return;
+		}
+
 		if (gate.loop_count == 0)
 		{
 			gate.start_scan_time = millis();
@@ -160,8 +167,8 @@ void apply_gate(gate_t gate, int *scan_sample, int *apply_sample)
 		}
 
 		gate.elapsed_scan_time = millis() - gate.start_scan_time;
-		
-		if (gate.elapsed_scan_time < gate.resolution)
+
+		if (gate.elapsed_scan_time < gate.max_scan_time)
 		{
 			if (*scan_sample > gate.peak_sample)
 			{

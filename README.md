@@ -16,6 +16,7 @@ Project design for making a gate for kick and snare drum mics feeded by piezo tr
 | POW   | 3.3V  | 3V3   |
 | SCK   | MCLK  | 0     |
 ```
+
 ## PCM5102A DAC Pinout
 ```
 | DAC   | I2S   | ESP32 |
@@ -23,7 +24,7 @@ Project design for making a gate for kick and snare drum mics feeded by piezo tr
 | VCC   | VIN   | VIN   |
 | 3.3V  | 3.3V  | 3V3   |
 | GND   | GND   | GND   |
-| FLT   | GND   | GND   |
+| FLT   | GND   | 3V3   | CHANGE IT!! IT IS CURRENTLY GND
 | DMP   | GND   | GND   |
 | SCL   | MCLK  | 0     |
 | BCK   | BCK   | 19    |
@@ -32,6 +33,7 @@ Project design for making a gate for kick and snare drum mics feeded by piezo tr
 | FMT   | GND   | GND   |
 | XMT   | 3.3V  | 3V3   |
 ```
+
 ## Exponencial Moving Average Alpha - High Pass Filter
 ```
 | EMA_a | High Pass Filter     |
@@ -41,6 +43,7 @@ Project design for making a gate for kick and snare drum mics feeded by piezo tr
 | 0.2   | 2022.70 hz 6dB / oct |
 | 0.3   | 3514.10 hz 6dB / oct |
 ```
+
 Code used to generate raw and filtered samples to compare
 
 ```python
@@ -84,14 +87,11 @@ wavf.write(
 
 ```
 
-
 ## Must know
 
-
-$$ max~volume = 20 * log_{~10~} (~bit~depth~max~value - 1~) $$
+$$ max~volume = 20~log_{~10~} (~bit~depth~max~value - 1~) $$
 
 $$ multiply~sample~by = 0.5^( \frac{db~to~remove}{6} ~^) $$
-
 
 ### Example
 
@@ -104,7 +104,7 @@ bit_depth_max_value = 16,777,216
 
 calculating...
 
-max_volume = 20 * log(10) 16,777,215 => ~144dB
+max_volume = 20 log(10) 16,777,215 => ~144dB
 
 desired_db_reduction = 144db
 
