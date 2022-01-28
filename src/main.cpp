@@ -1,5 +1,29 @@
 #include "Arduino.h"
 #include "driver/i2s.h"
+#include <WiFi.h>
+#include <AsyncTCP.h>
+#include <ESPAsyncWebServer.h>
+
+AsyncWebServer http_server(5000);
+AsyncEventSource event_server("/events");
+
+const char *wifi_name = "DojaeNina";
+const char *wifi_password = "gatinhas123";
+
+struct plotter_t
+{
+	int buffer[256];
+	int buffer_size;
+	int size_read;
+	std::string message;
+};
+
+plotter_t plotter = {
+	.buffer = {0},
+	.buffer_size = 256,
+	.size_read = 0,
+	.message = "",
+};
 
 struct i2s_t
 {
@@ -46,7 +70,7 @@ struct piezo_t
 
 piezo_t piezo = {
 	.sample = 0,
-	.pin = 26,
+	.pin = 33,
 };
 
 struct gate_t
@@ -141,7 +165,31 @@ void configure_i2s()
 void setup()
 {
 	Serial.begin(115200);
-	configure_i2s();
+	// configure_i2s();
+
+	WiFi.begin(wifi_name, wifi_password);
+	while (WiFi.status() != WL_CONNECTED)
+	{
+		delay(1000);
+		Serial.println("Connecting to WiFi..");
+	}
+
+	Serial.println(WiFi.localIP());
+
+	event_server.onConnect([](AsyncEventSourceClient *client)
+						   {
+							   if (client->lastId())
+							   {
+								   Serial.printf("Client reconnected! Last message ID that it got is: %u\n", client->lastId());
+							   }
+							   client->send("hello!", NULL, millis(), 10000);
+						   });
+
+	http_server.addHandler(&event_server);
+
+	DefaultHeaders::Instance().addHeader("Access-Control-Allow-Origin", "*");
+
+	http_server.begin();
 }
 
 void apply_high_pass(high_pass_t *high_pass, int *sample)
@@ -226,4 +274,32 @@ void loop()
 	apply_high_pass(&high_pass_piezo, &piezo.sample);
 	i2s.output_ratio = 1;
 	apply_gate(gate_piezo, &piezo.sample, &i2s.output_ratio);
+
+	if (plotter.size_read == plotter.buffer_size)
+	{
+		plotter.message.append("[");
+
+		for (int i = 0; i < plotter.buffer_size; i++)
+		{
+			plotter.message.append(String(plotter.buffer[i]).c_str());
+
+			if (i != plotter.buffer_size - 1)
+			{
+				plotter.message.append(", ");
+			}
+
+			plotter.buffer[i] = 0;
+		}
+
+		plotter.message.append("]");
+		event_server.send(plotter.message.c_str(), "message", millis());
+		plotter.message = "";
+		plotter.size_read = 0;
+		delay(10);
+	}
+	else
+	{
+		plotter.buffer[plotter.size_read] = random(0, 4000);
+		plotter.size_read++;
+	}
 }
