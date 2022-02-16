@@ -24,8 +24,8 @@ Project design for making a gate for kick and snare drum mics feeded by piezo tr
 | VCC   | VIN   | VIN   |
 | 3.3V  | 3.3V  | 3V3   |
 | GND   | GND   | GND   |
-| FLT   | GND   | 3V3   | CHANGE IT!! IT IS CURRENTLY GND
-| DMP   | GND   | GND   |
+| FLT   | GND   | 3V3   |
+| DMP   | GND   |       |
 | SCL   | MCLK  | 0     |
 | BCK   | BCK   | 19    |
 | DIN   | DOUT  | 18    |
