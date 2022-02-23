@@ -9,8 +9,8 @@ AsyncEventSource right_event_source("/right");
 
 void configure_wifi()
 {
-    const char *wifi_name = "DojaeNina";
-    const char *wifi_password = "gatinhas123";
+    const char *wifi_name = "";
+    const char *wifi_password = "";
 
     WiFi.begin(wifi_name, wifi_password);
     while (WiFi.status() != WL_CONNECTED)

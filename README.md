@@ -9,12 +9,12 @@ Project design for making a gate for kick and snare drum mics feeded by piezo tr
 | +5V   | VIN   | VIN   |
 | 3.3V  | 3.3V  | 3V3   |
 | GND   | GND   | GND   |
-| DOUT  | DIN   | 21    |
-| BCK   | BCK   | 19    |
+| DOUT  | DIN   | IO18  |
+| BCK   | BCK   | IO5   |
 | FSY   | 3.3V  | 3V3   |
-| LRCK  | LCK   | 5     |
+| LRCK  | LCK   | IO16  |
 | POW   | 3.3V  | 3V3   |
-| SCK   | MCLK  | 0     |
+| SCK   | MCLK  | IO0   |
 ```
 
 ## PCM5102A DAC Pinout
@@ -24,12 +24,12 @@ Project design for making a gate for kick and snare drum mics feeded by piezo tr
 | VCC   | VIN   | VIN   |
 | 3.3V  | 3.3V  | 3V3   |
 | GND   | GND   | GND   |
-| FLT   | GND   | 3V3   |
-| DMP   | GND   |       |
-| SCL   | MCLK  | 0     |
-| BCK   | BCK   | 19    |
-| DIN   | DOUT  | 18    |
-| LCK   | LCK   | 5     |
+| FLT   | GND   | GND   |
+| DMP   | 3.3V  | 3V3   |
+| SCL   | MCLK  | IO0   |
+| BCK   | BCK   | IO5   |
+| DIN   | DOUT  | IO17  |
+| LCK   | LCK   | IO16  |
 | FMT   | GND   | GND   |
 | XMT   | 3.3V  | 3V3   |
 ```
@@ -109,4 +109,17 @@ max_volume = 20 log(10) 16,777,215 => ~144dB
 desired_db_reduction = 144db
 
 multiply_sample_by = 0.5 ** (144 / 6)
+```
+
+### Audio Sample Buffer
+
+```python
+from scipy.io.wavfile import read
+import numpy
+
+a = read("kick.wav")
+b = numpy.array(a[1],dtype=int)
+c = [sample[0] for sample in b][:8704]
+
+print(c)
 ```
