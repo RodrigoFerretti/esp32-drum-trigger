@@ -51,6 +51,18 @@
         "thread": "cpp",
         "cinttypes": "cpp",
         "regex": "cpp",
-        "string_view": "cpp"
+        "string_view": "cpp",
+        "cerrno": "cpp",
+        "cfloat": "cpp",
+        "ciso646": "cpp",
+        "climits": "cpp",
+        "cstdbool": "cpp",
+        "map": "cpp",
+        "string": "cpp",
+        "iterator": "cpp",
+        "ios": "cpp",
+        "locale": "cpp",
+        "queue": "cpp",
+        "stack": "cpp"
     }
 }

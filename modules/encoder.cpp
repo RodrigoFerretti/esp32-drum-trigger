@@ -6,36 +6,38 @@ struct encoder_t
     int a_pin;
     int b_pin;
     int c_pin;
-    bool a_read;
-    bool b_read;
-    bool c_read;
-    bool c_read_before;
-    float output_value;
+    float out_value;
     float max_value;
     float min_value;
-    float step_value;
+    float stp_value;
+    bool a_state;
+    bool b_state;
+    bool c_state;
     bool rising;
     bool apply;
+    player_t *player;
 
-    void setup()
+    void setup(player_t *_player)
     {
         pinMode(a_pin, INPUT_PULLUP);
         pinMode(b_pin, INPUT_PULLUP);
         pinMode(c_pin, INPUT_PULLUP);
+
+        player = _player;
     }
 
     void read()
     {
-        a_read = digitalRead(a_pin);
-        b_read = digitalRead(b_pin);
+        a_state = digitalRead(a_pin);
+        b_state = digitalRead(b_pin);
 
-        if ((a_read) & (b_read))
+        if ((a_state) & (b_state))
 
             return;
 
         apply = true;
 
-        if ((!a_read) & (!b_read))
+        if ((!a_state) & (!b_state))
         {
             rising = true;
 
@@ -53,67 +55,43 @@ struct encoder_t
 
         apply = false;
 
-        if ((rising) & (output_value < max_value))
+        if ((rising) & (out_value < max_value))
         {
-            output_value += step_value;
+            out_value += stp_value;
 
             return;
         }
 
-        if ((!rising) & (output_value > min_value))
+        if ((!rising) & (out_value > min_value))
         {
-            output_value -= step_value;
+            out_value -= stp_value;
         }
     }
 
     void read_buttom()
     {
-        c_read = digitalRead(c_pin);
+        bool c_read = digitalRead(c_pin);
 
-        if (c_read < c_read_before)
+        if (c_read < c_state)
         {
-            player_kick.trigger_sample();
-
-            Serial.println("click");
+            player->trigger_sample();
         }
 
-        if (c_read > c_read_before)
+        if (c_read > c_state)
         {
             Serial.println("release");
         }
 
-        c_read_before = c_read;
+        c_state = c_read;
     }
 };
 
 encoder_t encoder_left = {
     .a_pin = 4,
     .b_pin = 16,
-    .c_pin = 19,
-    .a_read = true,
-    .b_read = true,
-    .c_read = true,
-    .c_read_before = true,
-    .output_value = 1.00,
+    .c_pin = 23,
+    .out_value = 1.00,
     .max_value = 1.00,
     .min_value = 0.00,
-    .step_value = 0.05,
-    .rising = true,
-    .apply = false,
-};
-
-encoder_t encoder_right = {
-    .a_pin = 22,
-    .b_pin = 23,
-    .c_pin = 32,
-    .a_read = true,
-    .b_read = true,
-    .c_read = true,
-    .c_read_before = true,
-    .output_value = 1.00,
-    .max_value = 1.00,
-    .min_value = 0.00,
-    .step_value = 0.05,
-    .rising = true,
-    .apply = false,
+    .stp_value = 0.05,
 };

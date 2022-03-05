@@ -11,12 +11,7 @@ struct high_pass_t
     };
 };
 
-high_pass_t high_pass_piezo_left = {
-    .EMA_s = 0,
-    .EMA_a = 0.04,
-};
-
-high_pass_t high_pass_piezo_right = {
+high_pass_t high_pass_piezo = {
     .EMA_s = 0,
     .EMA_a = 0.04,
 };

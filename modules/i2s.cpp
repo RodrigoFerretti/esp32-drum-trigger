@@ -2,6 +2,8 @@
 #include "driver/i2s.h"
 #include <../modules/encoder.cpp>
 
+const int BUFFER_SIZE = 64;
+
 struct i2s_t
 {
     i2s_port_t port;
@@ -13,12 +15,12 @@ struct i2s_t
     int din_pin;
     int bck_pin;
     int lck_pin;
-    int rx_buffer[64];
-    int tx_buffer[64];
     int size_to_read;
     size_t size_read;
-    float left_gate_multiplier;
-    float right_gate_multiplier;
+    float input_multiplier;
+    int rx_buffer[BUFFER_SIZE];
+    int tx_buffer[BUFFER_SIZE];
+    ;
 
     void setup()
     {
@@ -75,9 +77,9 @@ struct i2s_t
 
             return;
 
-        for (int i = 0; i < 64; i = i + 2)
+        for (int i = 0; i < BUFFER_SIZE; i = i + 2)
         {
-            tx_buffer[i] = player_kick.get_sample() * 10000;
+            tx_buffer[i] = trigger_player.get_sample() * 10000;
             tx_buffer[i + 1] = tx_buffer[i];
         }
 
@@ -95,10 +97,7 @@ i2s_t i2s = {
     .din_pin = 18,
     .bck_pin = 5,
     .lck_pin = 16,
-    .rx_buffer = {0},
-    .tx_buffer = {0},
-    .size_to_read = 64 * 4,
+    .size_to_read = BUFFER_SIZE * sizeof(int32_t),
     .size_read = 0,
-    .left_gate_multiplier = 1.0,
-    .right_gate_multiplier = 1.0,
+    .input_multiplier = 1.0,
 };

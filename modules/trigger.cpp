@@ -3,17 +3,16 @@
 struct trigger_t
 {
     int threshold;
-    int peak_sample;
+    float release;
+    float range;
+    int max_scan_time;
     int loop_count;
+    int peak_sample;
     int start_scan_time;
     int elapsed_scan_time;
-    int max_scan_time;
     int start_active_time;
     int elapsed_active_time;
-    float release;
     bool is_active;
-    float range;
-    float gate_multiplier;
 
     void scan_sample(int sample)
     {
@@ -33,7 +32,6 @@ struct trigger_t
             loop_count = 0;
             start_active_time = millis();
             is_active = true;
-            gate_multiplier = pow(0.5, range / 6.0);
 
             return;
         }
@@ -48,6 +46,8 @@ struct trigger_t
 
     float get_gate_multiplier()
     {
+        float gate_multiplier = pow(0.5, range / 6.0);
+
         if (!is_active)
             return gate_multiplier;
 
@@ -66,32 +66,10 @@ struct trigger_t
     }
 };
 
-trigger_t trigger_piezo_left = {
+trigger_t trigger_piezo = {
     .threshold = 100,
-    .peak_sample = 0,
-    .loop_count = 0,
-    .start_scan_time = 0,
-    .elapsed_scan_time = 0,
-    .max_scan_time = 20,
-    .start_active_time = 0,
-    .elapsed_active_time = 0,
     .release = 444.0,
-    .is_active = false,
     .range = 12,
-    .gate_multiplier = 0.0,
-};
-
-trigger_t trigger_piezo_right = {
-    .threshold = 100,
-    .peak_sample = 0,
-    .loop_count = 0,
-    .start_scan_time = 0,
-    .elapsed_scan_time = 0,
     .max_scan_time = 20,
-    .start_active_time = 0,
-    .elapsed_active_time = 0,
-    .release = 444.0,
-    .is_active = false,
-    .range = 12,
-    .gate_multiplier = 0.0,
+    .loop_count = 0,
 };
