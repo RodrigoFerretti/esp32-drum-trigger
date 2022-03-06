@@ -12,6 +12,7 @@ void setup()
     sample_loader.navigate_down();
     trigger_player.setup();
     encoder_left.setup(&trigger_player);
+    equalizer.setup();
     i2s.setup();
 }
 

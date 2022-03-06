@@ -123,3 +123,17 @@ c = [sample[0] for sample in b][:8704]
 
 print(c)
 ```
+
+```cpp
+int input_buffer[64];
+
+int output_buffer[64];
+
+int input_buffer[64];
+
+int output_buffer[64];
+
+float a_coeffs[3];
+
+float b_coeffs[3];
+```
