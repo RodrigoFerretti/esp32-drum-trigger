@@ -137,4 +137,4 @@ struct player_t
     }
 };
 
-player_t trigger_player;
+player_t player;

@@ -10,8 +10,8 @@ void setup()
     sd.setup();
     sample_loader.setup();
     sample_loader.navigate_down();
-    trigger_player.setup();
-    encoder_left.setup(&trigger_player);
+    player.setup();
+    button.setup(&player);
     equalizer.setup();
     i2s.setup();
 }
@@ -23,6 +23,6 @@ void loop()
     high_pass_piezo.filter_sample(&piezo.sample);
     trigger_piezo.scan_sample(piezo.sample);
     i2s.input_multiplier = trigger_piezo.get_gate_multiplier();
-    encoder_left.read_buttom();
+    button.read();
     i2s.stream();
 }

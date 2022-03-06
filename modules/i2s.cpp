@@ -1,6 +1,6 @@
 #include "Arduino.h"
 #include "driver/i2s.h"
-#include <../modules/encoder.cpp>
+#include <../modules/button.cpp>
 #include <../modules/equalizer.cpp>
 
 const int BUFFER_SIZE = 64;
@@ -80,7 +80,7 @@ struct i2s_t
 
         for (int i = 0; i < BUFFER_SIZE; i = i + 2)
         {
-            tx_buffer[i] = equalizer.filter(trigger_player.get_sample() * 10000);
+            tx_buffer[i] = equalizer.filter(player.get_sample() * 10000);
             tx_buffer[i + 1] = tx_buffer[i];
         }
 

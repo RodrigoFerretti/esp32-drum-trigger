@@ -1,29 +1,22 @@
 #include "Arduino.h"
-#include <../modules/player.cpp>
 
 struct encoder_t
 {
     int a_pin;
     int b_pin;
-    int c_pin;
     float out_value;
     float max_value;
     float min_value;
     float stp_value;
     bool a_state;
     bool b_state;
-    bool c_state;
     bool rising;
     bool apply;
-    player_t *player;
 
-    void setup(player_t *_player)
+    void setup()
     {
         pinMode(a_pin, INPUT_PULLUP);
         pinMode(b_pin, INPUT_PULLUP);
-        pinMode(c_pin, INPUT_PULLUP);
-
-        player = _player;
     }
 
     void read()
@@ -67,29 +60,11 @@ struct encoder_t
             out_value -= stp_value;
         }
     }
-
-    void read_buttom()
-    {
-        bool c_read = digitalRead(c_pin);
-
-        if (c_read < c_state)
-        {
-            player->trigger_sample();
-        }
-
-        if (c_read > c_state)
-        {
-            Serial.println("release");
-        }
-
-        c_state = c_read;
-    }
 };
 
 encoder_t encoder_left = {
     .a_pin = 4,
     .b_pin = 16,
-    .c_pin = 23,
     .out_value = 1.00,
     .max_value = 1.00,
     .min_value = 0.00,
