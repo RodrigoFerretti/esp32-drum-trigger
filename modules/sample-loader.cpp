@@ -54,7 +54,7 @@ struct sample_loader_t
         }
     }
 
-    const char *get_file_path()
+    const char *get_next_file()
     {
         File file = directory.openNextFile();
         return file.name();

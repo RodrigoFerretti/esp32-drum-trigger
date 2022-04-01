@@ -20,7 +20,8 @@ struct player_t
         {
             wav_file_t wav_file;
             wavs[i] = wav_file;
-            wavs[i].setup(sample_loader.get_file_path());
+            const char *path = sample_loader.get_next_file();
+            wavs[i].setup(path);
         }
     }
 

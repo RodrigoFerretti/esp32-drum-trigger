@@ -12,7 +12,6 @@ void setup()
     sample_loader.navigate_down();
     player.setup();
     button.setup(&player);
-    equalizer.setup();
     i2s.setup();
 }
 
