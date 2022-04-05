@@ -1,5 +1,6 @@
 #include "Arduino.h"
 #include "driver/i2s.h"
+// #include <../modules/trigger.cpp>
 #include <../modules/button.cpp>
 
 const int BUFFER_SIZE = 64;
@@ -17,7 +18,6 @@ struct i2s_t
     int lck_pin;
     int size_to_read;
     size_t size_read;
-    float input_multiplier;
     int rx_buffer[BUFFER_SIZE];
     int tx_buffer[BUFFER_SIZE];
     ;
@@ -99,5 +99,4 @@ i2s_t i2s = {
     .lck_pin = 16,
     .size_to_read = BUFFER_SIZE * sizeof(int32_t),
     .size_read = 0,
-    .input_multiplier = 1.0,
 };

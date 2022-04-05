@@ -1,38 +1,38 @@
 #include "Arduino.h"
-#include "FS.h"
-#include "SD.h"
-#include "SPI.h"
+#include <../modules/player.cpp>
 
 struct sample_loader_t
 {
+    int position;
     File root;
     File directory;
-    int position;
+    File files[4];
 
     void setup()
     {
         root = SD.open("/samples");
-        position = 0;
-        navigate_down();
+        for (int i = 0; i < position + 1; i++)
+        {
+            directory = root.openNextFile();
+        }
+
+        load_file_names();
+        player.setup(files);
     }
 
     void navigate_down()
     {
         File last_directory = directory;
         directory = root.openNextFile();
-        
+
         if (!directory)
         {
             directory = last_directory;
             return;
         }
 
-        while (!directory.isDirectory())
-        {
-            navigate_down();
-
-            return;
-        }
+        load_file_names();
+        player.setup(files);
 
         position += 1;
     }
@@ -46,18 +46,21 @@ struct sample_loader_t
 
         int last_position = position;
         root.rewindDirectory();
+        directory = root.openNextFile();
         position = 0;
-        
+
         for (int i = 0; i < last_position - 1; i++)
         {
             navigate_down();
         }
     }
 
-    const char *get_next_file()
+    void load_file_names()
     {
-        File file = directory.openNextFile();
-        return file.name();
+        files[0] = directory.openNextFile();
+        files[1] = directory.openNextFile();
+        files[2] = directory.openNextFile();
+        files[3] = directory.openNextFile();
     }
 };
 

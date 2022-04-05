@@ -1,12 +1,12 @@
 ### ESP32:
 
--   setup 2 more encoders
--   encoder for trigger->threshold
--   encoder for trigger->max_scan_time
--   encoder for trigger->dynamic_tracking
--   trigger call player->trigger_sample and send dynamic_tracking multiplier
--   setup display for tracking values
--   store 3 values internally esp32
+-   setup 2 more encoders, 3 total (trigger->threshold, trigger->max_scan_time, trigger->dynamic_tracking)
+-   trigger call player->trigger_sample send dynamic_tracking multiplier and algorithm
+-   store values from preferences lib to reboot
+-   buttons for navigate up and down folder
+-   buttom for hearing sample
+-   ps: 3 encoders & 3 buttons
+-   lcd output without bugs
 
 ### WITHOUT DRUMS:
 

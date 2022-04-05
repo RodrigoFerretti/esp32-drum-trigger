@@ -1,4 +1,7 @@
-#include <../modules/sample-loader.cpp>
+#include "Arduino.h"
+#include "FS.h"
+#include "SD.h"
+#include "SPI.h"
 
 struct sd_t
 {

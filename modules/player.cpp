@@ -14,14 +14,14 @@ struct player_t
     wav_file_t wavs[4];
     wav_file_t wav;
 
-    void setup()
+    void setup(File files[4])
     {
         for (int i = 0; i < 4; i++)
         {
             wav_file_t wav_file;
             wavs[i] = wav_file;
-            const char *path = sample_loader.get_next_file();
-            wavs[i].setup(path);
+            File file = files[i];
+            wavs[i].setup(file);
         }
     }
 
@@ -75,66 +75,6 @@ struct player_t
         buffer_samples_read = 1;
 
         return sample;
-    }
-
-    void print_wav_data()
-    {
-        Serial.print("riff: ");
-        Serial.print(wav.header.riff[0]);
-        Serial.print(wav.header.riff[1]);
-        Serial.print(wav.header.riff[2]);
-        Serial.println(wav.header.riff[3]);
-
-        Serial.print("fmt: ");
-        Serial.print(wav.header.fmt[0]);
-        Serial.print(wav.header.fmt[1]);
-        Serial.print(wav.header.fmt[2]);
-        Serial.println(wav.header.fmt[3]);
-
-        Serial.print("size: ");
-        Serial.println(wav.header.size);
-
-        Serial.print("wave: ");
-        Serial.print(wav.header.wave[0]);
-        Serial.print(wav.header.wave[1]);
-        Serial.print(wav.header.wave[2]);
-        Serial.println(wav.header.wave[3]);
-
-        Serial.print("fmt: ");
-        Serial.print(wav.header.fmt[0]);
-        Serial.print(wav.header.fmt[1]);
-        Serial.print(wav.header.fmt[2]);
-        Serial.println(wav.header.fmt[3]);
-
-        Serial.print("rest_size: ");
-        Serial.println(wav.header.rest_size);
-
-        Serial.print("format: ");
-        Serial.println(wav.header.format);
-
-        Serial.print("channels: ");
-        Serial.println(wav.header.channels);
-
-        Serial.print("sample_rate: ");
-        Serial.println(wav.header.sample_rate);
-
-        Serial.print("byte_rate: ");
-        Serial.println(wav.header.byte_rate);
-
-        Serial.print("block_align: ");
-        Serial.println(wav.header.block_align);
-
-        Serial.print("bits_per_sample: ");
-        Serial.println(wav.header.bits_per_sample);
-
-        Serial.print("data: ");
-        Serial.print(wav.header.data[0]);
-        Serial.print(wav.header.data[1]);
-        Serial.print(wav.header.data[2]);
-        Serial.println(wav.header.data[3]);
-
-        Serial.print("data_size: ");
-        Serial.println(wav.header.data_size);
     }
 };
 

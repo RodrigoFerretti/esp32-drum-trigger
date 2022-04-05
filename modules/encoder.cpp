@@ -8,10 +8,10 @@ struct encoder_t
     float max_value;
     float min_value;
     float stp_value;
-    bool a_state;
-    bool b_state;
     bool rising;
     bool apply;
+    int states[4];
+    int samples_read;
 
     void setup()
     {
@@ -21,27 +21,46 @@ struct encoder_t
 
     void read()
     {
-        a_state = digitalRead(a_pin);
-        b_state = digitalRead(b_pin);
+        bool a_state = digitalRead(a_pin);
+        bool b_state = digitalRead(b_pin);
 
         if ((a_state) & (b_state))
-
-            return;
-
-        apply = true;
-
-        if ((!a_state) & (!b_state))
         {
-            rising = true;
+            samples_read = 0;
 
             return;
         }
 
-        rising = false;
-    }
+        if ((a_state | b_state) & (samples_read == 0))
+        {
+            states[0] = a_state;
+            states[1] = b_state;
+            samples_read = 2;
+        }
 
-    void set_output_value()
-    {
+        if ((a_state | b_state) & (samples_read == 2))
+        {
+            states[2] = a_state;
+            states[3] = b_state;
+            samples_read = 4;
+        }
+
+        if ((states[0] == 1) & (states[3] == 1))
+        {
+            rising = true;
+            apply = true;
+        }
+
+        if ((states[0] == 0) & (states[3] == 0))
+        {
+            rising = false;
+            apply = true;
+        }
+
+        states[2] = states[0];
+        states[3] = states[1];
+        samples_read = 2;
+
         if (!apply)
 
             return;
@@ -62,9 +81,9 @@ struct encoder_t
     }
 };
 
-encoder_t encoder_left = {
+encoder_t encoder_threshold = {
     .a_pin = 4,
-    .b_pin = 16,
+    .b_pin = 2,
     .out_value = 1.00,
     .max_value = 1.00,
     .min_value = 0.00,

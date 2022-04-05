@@ -1,18 +1,15 @@
 #include "Arduino.h"
+// #include <../modules/sample-loader.cpp>
 
 struct trigger_t
 {
-    int threshold;
-    float release;
-    float range;
-    int max_scan_time;
     int loop_count;
+    int threshold;
+    int max_scan_time;
     int peak_sample;
     int start_scan_time;
     int elapsed_scan_time;
-    int start_active_time;
-    int elapsed_active_time;
-    bool is_active;
+    int dynamic_tracking;
 
     void scan_sample(int sample)
     {
@@ -30,8 +27,8 @@ struct trigger_t
         if (elapsed_scan_time > max_scan_time)
         {
             loop_count = 0;
-            start_active_time = millis();
-            is_active = true;
+
+            // player.trigger_sample();
 
             return;
         }
@@ -43,33 +40,8 @@ struct trigger_t
 
         loop_count++;
     }
-
-    float get_gate_multiplier()
-    {
-        float gate_multiplier = pow(0.5, range / 6.0);
-
-        if (!is_active)
-            return gate_multiplier;
-
-        elapsed_active_time = millis() - start_active_time;
-
-        if (elapsed_active_time < release)
-        {
-            float to_remove = (float)(elapsed_active_time / (release / (1 - gate_multiplier)));
-
-            return (float)1 - to_remove;
-        }
-
-        is_active = false;
-
-        return gate_multiplier;
-    }
 };
 
-trigger_t trigger_piezo = {
-    .threshold = 100,
-    .release = 444.0,
-    .range = 12,
-    .max_scan_time = 20,
+trigger_t trigger = {
     .loop_count = 0,
 };
