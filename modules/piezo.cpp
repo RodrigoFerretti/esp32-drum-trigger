@@ -5,5 +5,5 @@ struct piezo_t
 };
 
 piezo_t piezo = {
-    .pin = 33,
+    .pin = 4,
 };

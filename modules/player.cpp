@@ -1,6 +1,7 @@
 #include "Arduino.h"
 #include <cstring>
 #include <../modules/wav-file.cpp>
+#include <../modules/encoder.cpp>
 
 const int SAMPLE_AMMOUNT = 32;
 
@@ -13,15 +14,28 @@ struct player_t
     bool is_playing;
     wav_file_t wavs[4];
     wav_file_t wav;
+    int position;
+    File root;
+    File directory;
 
-    void setup(File files[4])
+    void setup()
+    {
+        root = SD.open("/samples");
+        for (int i = 0; i < position + 1; i++)
+        {
+            directory = root.openNextFile();
+        }
+
+        load_samples();
+    }
+
+    void load_samples()
     {
         for (int i = 0; i < 4; i++)
         {
             wav_file_t wav_file;
             wavs[i] = wav_file;
-            File file = files[i];
-            wavs[i].setup(file);
+            wavs[i].setup(directory.openNextFile());
         }
     }
 
@@ -75,6 +89,55 @@ struct player_t
         buffer_samples_read = 1;
 
         return sample;
+    }
+
+    void navigate_down()
+    {
+        File last_directory = directory;
+        directory = root.openNextFile();
+
+        if (!directory)
+        {
+            directory = last_directory;
+            return;
+        }
+
+        load_samples();
+
+        position += 1;
+
+        display_directory(directory.name(), position + 1);
+        preferences.putInt("position", position);
+    }
+
+    void navigate_up()
+    {
+        if (position < 1)
+        {
+            return;
+        }
+
+        int last_position = position;
+        root.rewindDirectory();
+        directory = root.openNextFile();
+        position = 0;
+
+        for (int i = 0; i < last_position - 1; i++)
+        {
+            File last_directory = directory;
+            directory = root.openNextFile();
+
+            if (!directory)
+            {
+                directory = last_directory;
+                return;
+            }
+
+            position += 1;
+        }
+
+        display_directory(directory.name(), position + 1);
+        preferences.putInt("position", position);
     }
 };
 

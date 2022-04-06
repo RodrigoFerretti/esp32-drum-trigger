@@ -137,3 +137,58 @@ float a_coeffs[3];
 
 float b_coeffs[3];
 ```
+
+```
+LCD
+
+SCL     IO22
+SDA     IO21
+VCC     5V
+GND     GND
+
+SD
+
+CS      IO12
+SCK     IO14
+MOSI    IO26
+MISO    IO27
+VCC     5V
+GND     GND
+
+DAC
+
+VCC     -
+3.3V    3V3
+GND     GND
+FLT     GND
+DMP     GND
+BCK     IO5
+DIN     IO17
+LCK     IO16
+FMT     GND
+XMT     3V3
+
+ENCODERS
+
+A       IO13
+B       IO25
+
+A       I15
+B       I02
+
+A       I19
+B       I23
+
+XLR
+
+HOT     IO4
+HOT     I34
+HOT     I35
+
+BUTTONS
+
+HOT     I32
+HOT     I33
+HOT     I03     RX
+
+```

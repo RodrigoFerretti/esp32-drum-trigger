@@ -5,11 +5,11 @@ struct trigger_t
 {
     int loop_count;
     int threshold;
-    int max_scan_time;
+    int resolution;
     int peak_sample;
     int start_scan_time;
     int elapsed_scan_time;
-    int dynamic_tracking;
+    int dynamic;
 
     void scan_sample(int sample)
     {
@@ -24,7 +24,7 @@ struct trigger_t
 
         elapsed_scan_time = millis() - start_scan_time;
 
-        if (elapsed_scan_time > max_scan_time)
+        if (elapsed_scan_time > resolution)
         {
             loop_count = 0;
 
