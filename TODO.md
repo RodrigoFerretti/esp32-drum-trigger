@@ -1,7 +1,5 @@
 ### ESP32:
 
--   switch io34 or io35 pin to input piezo, io4 for last button
--   configure methods for buttons
 -   develop dynamic algorithm logic
 -   send dynamic to player
 
