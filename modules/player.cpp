@@ -17,6 +17,7 @@ struct player_t
     int position;
     File root;
     File directory;
+    float dynamic_multiplier;
 
     void setup()
     {
@@ -39,8 +40,9 @@ struct player_t
         }
     }
 
-    void trigger_sample()
+    void trigger_sample(float _dynamic_multiplier)
     {
+        dynamic_multiplier = _dynamic_multiplier;
         is_playing = true;
         wav = wavs[random(0, 4)];
         buffer_bytes_size = SAMPLE_AMMOUNT * wav.sample_bytes_size;
@@ -69,7 +71,7 @@ struct player_t
             int sample = buffer[buffer_samples_read];
             buffer_samples_read += 1;
 
-            return sample;
+            return sample * dynamic_multiplier;
         }
 
         file_bytes_read += buffer_bytes_size;
@@ -88,7 +90,7 @@ struct player_t
         int sample = buffer[0];
         buffer_samples_read = 1;
 
-        return sample;
+        return sample * dynamic_multiplier;
     }
 
     void navigate_down()
@@ -135,6 +137,8 @@ struct player_t
 
             position += 1;
         }
+
+        load_samples();
 
         display_directory(directory.name(), position + 1);
         preferences.putInt("position", position);

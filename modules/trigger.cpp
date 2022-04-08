@@ -1,5 +1,5 @@
 #include "Arduino.h"
-// #include <../modules/sample-loader.cpp>
+#include <../modules/button.cpp>
 
 struct trigger_t
 {
@@ -13,7 +13,7 @@ struct trigger_t
 
     void scan_sample(int sample)
     {
-        if (sample < threshold)
+        if (sample < threshold * 10)
             return;
 
         if (loop_count == 0)
@@ -28,7 +28,9 @@ struct trigger_t
         {
             loop_count = 0;
 
-            // player.trigger_sample();
+            float dynamic_multiplier = peak_sample / 4096.0 * (pow((4096.0 / peak_sample), (1.0 - (dynamic / 100.0))));
+
+            player.trigger_sample(dynamic_multiplier);
 
             return;
         }

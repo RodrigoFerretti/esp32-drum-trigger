@@ -1,7 +1,6 @@
 #include "Arduino.h"
 #include "driver/i2s.h"
-// #include <../modules/trigger.cpp>
-#include <../modules/button.cpp>
+#include <../modules/trigger.cpp>
 
 const int BUFFER_SIZE = 64;
 

@@ -1,7 +1,6 @@
 #include "Arduino.h"
 #include <../modules/i2s.cpp>
 #include <../modules/piezo.cpp>
-#include <../modules/trigger.cpp>
 #include <../modules/high-pass.cpp>
 
 void setup()

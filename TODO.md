@@ -1,22 +1,18 @@
-### ESP32:
-
--   develop dynamic algorithm logic
--   send dynamic to player
-
 ### WITHOUT DRUMS:
 
--   find wav's max_value for 16bits then define normalization multiplier
+-   find wav's max_value for 16bits then define normalization multiplier (something like 10000)
+
+### Hardware
+
+-   design box
+-   mount box
 
 ### WITH DRUMS:
 
 -   find piezo's max_value input with current configuration
 -   find threshold friendly_range between 0 and piezo's max_value
--   find max_scan_time friendly range between 0 and 200 ms
--   find dynamic_tracking multiplier_rule between 0 and 1 for piezo's max_value and 0 for threshold
+-   find max_scan_time friendly range between 0 and 100 ms
 
-### Hardware
+### ESP32:
 
--   measure approximate box size
--   XLR input for trigger with resistor
--   TRS output with isolator
--   5V power input with isolator
+-   several minor refactors with tests

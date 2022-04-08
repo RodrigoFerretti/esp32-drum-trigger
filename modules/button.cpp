@@ -18,7 +18,7 @@ struct button_t
 
         if ((read < state) & (type == 0))
         {
-            player.trigger_sample();
+            player.trigger_sample(1);
         }
 
         if ((read < state) & (type == 1))
