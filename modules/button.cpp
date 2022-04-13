@@ -41,11 +41,11 @@ button_t button_play = {
 };
 
 button_t button_down = {
-    .pin = 3,
+    .pin = 33,
     .type = 1,
 };
 
 button_t button_up = {
-    .pin = 33,
+    .pin = 3,
     .type = 2,
 };

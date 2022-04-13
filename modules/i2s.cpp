@@ -78,7 +78,7 @@ struct i2s_t
 
         for (int i = 0; i < BUFFER_SIZE; i = i + 2)
         {
-            tx_buffer[i] = player.get_sample() * 10000;
+            tx_buffer[i] = player.get_sample() * 32000;
             tx_buffer[i + 1] = tx_buffer[i];
         }
 
