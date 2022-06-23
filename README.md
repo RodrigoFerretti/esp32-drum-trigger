@@ -4,34 +4,102 @@ Project design for making a gate for kick and snare drum mics feeded by piezo tr
 
 ## PCM1802 ADC Pinout
 ```
-| ADC   | I2S   | ESP32 |
-|-------|-------|-------|
-| +5V   | VIN   | VIN   |
-| 3.3V  | 3.3V  | 3V3   |
-| GND   | GND   | GND   |
-| DOUT  | DIN   | IO18  |
-| BCK   | BCK   | IO5   |
-| FSY   | 3.3V  | 3V3   |
-| LRCK  | LCK   | IO16  |
-| POW   | 3.3V  | 3V3   |
-| SCK   | MCLK  | IO0   |
+| ADC   | ESP32 |
+|-------|-------|
+| 3.3V  | 3.3V  |
+| GND   | GND   |
+| SCK   | IO0   |
+| LRC   | IO16  |
+| OUT   | IO18  |
+| BCK   | IO5   |
+| -     | -     |
+| LIN   | LIN   |
+| AGND  | AGND  |
+| RIN   | RIN   |
+| -     | -     |
+| FMY   | -     |
+| MD1   | -     |
+| MD0   | -     |
+| GND   | -     |
+| 3.3   | -     |
+| +5V   | -     |
+
 ```
 
-## PCM5102A DAC Pinout
+## UDA1334A DAC Pinout
 ```
-| DAC   | I2S   | ESP32 |
-|-------|-------|-------|
-| VCC   | VIN   | VIN   |
-| 3.3V  | 3.3V  | 3V3   |
-| GND   | GND   | GND   |
-| FLT   | GND   | GND   |
-| DMP   | 3.3V  | 3V3   |
-| SCL   | MCLK  | IO0   |
-| BCK   | BCK   | IO5   |
-| DIN   | DOUT  | IO17  |
-| LCK   | LCK   | IO16  |
-| FMT   | GND   | GND   |
-| XMT   | 3.3V  | 3V3   |
+| DAC   | ESP32 |
+|-------|-------|
+| VIN   | -     |
+| 3V0   | 3V3   |
+| GND   | GND   |
+| WSEL  | IO16  |
+| DIN   | IO17  |
+| BCKL  | IO5   |
+| Lout  | Lout  |
+| AGND  | AGND  |
+| Rout  | Rout  |
+| -     | -     |
+| SCLK  | IO0   |    
+| SF1   | -     |
+| MUTE  | -     |
+| SF0   | -     |
+| PLL   | -     |
+| DEEM  | -     |
+
+```
+
+## LCD 4x20
+```
+| LCD   | ESP32 |
+|-------|-------|
+| GND   | GND   |
+| VCC   | 5V    |
+| SDA   | IO21  |
+| SCL   | IO22  |
+```
+
+## SD Card Reader
+```
+| SD    | ESP32 |
+|-------|-------|
+| CS    | IO12  |
+| SCK   | IO14  |
+| MOSI  | IO26  |
+| MISO  | IO27  |
+| VCC   | 5V    |
+| GND   | GND   |
+
+```
+
+## Encoders
+```
+| ENCOD | ESP32 |
+|-------|-------|
+| A     | IO19  |
+| B     | IO23  |
+| -     | -     |
+| A     | IO15  |
+| B     | IO2   |
+| -     | -     |
+| A     | IO13  |
+| B     | IO25  |
+
+```
+
+## Buttons
+```
+| BUTTO | ESP32 |
+|-------|-------|
+| GND   | GND   |
+| HOT   | IO33  |
+| -     | -     |
+| GND   | GND   |
+| HOT   | IO32  |
+| -     | -     |
+| GND   | GND   |
+| HOT   | IO3   |
+
 ```
 
 ## Exponencial Moving Average Alpha - High Pass Filter
@@ -136,59 +204,5 @@ int output_buffer[64];
 float a_coeffs[3];
 
 float b_coeffs[3];
-```
-
-```
-LCD
-
-SCL     IO22
-SDA     IO21
-VCC     5V
-GND     GND
-
-SD
-
-CS      IO12
-SCK     IO14
-MOSI    IO26
-MISO    IO27
-VCC     5V
-GND     GND
-
-DAC
-
-VCC     -
-3.3V    3V3
-GND     GND
-FLT     GND
-DMP     GND
-BCK     IO5
-DIN     IO17
-LCK     IO16
-FMT     GND
-XMT     3V3
-
-ENCODERS
-
-A       IO13
-B       IO25
-
-A       I15
-B       I02
-
-A       I19
-B       I23
-
-XLR
-
-HOT     IO4
-HOT     I34
-HOT     I35
-
-BUTTONS
-
-HOT     I32
-HOT     I33
-HOT     I03     RX
 
 ```

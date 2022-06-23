@@ -24,7 +24,7 @@ struct encoder_t
         pinMode(b_pin, INPUT_PULLUP);
     }
 
-    void read()
+    float read()
     {
         bool a_state = digitalRead(a_pin);
         bool b_state = digitalRead(b_pin);
@@ -34,7 +34,7 @@ struct encoder_t
             set_output_value();
             samples_read = 0;
 
-            return;
+            return out_value;
         }
 
         if ((a_state | b_state) & (samples_read == 0))
@@ -50,6 +50,8 @@ struct encoder_t
             states[3] = b_state;
             samples_read = 4;
         }
+
+        return out_value;
     }
 
     void set_output_value()
@@ -75,6 +77,8 @@ struct encoder_t
         if ((rising) & (out_value < max_value))
         {
             out_value += stp_value;
+
+            // could be done outside validating change in return value
             display_parameter(lcd_name, out_value, lcd_position);
             preferences.putInt(lcd_name, out_value);
 
@@ -84,6 +88,8 @@ struct encoder_t
         if ((!rising) & (out_value > min_value))
         {
             out_value -= stp_value;
+
+            // could be done outside validating change in return value
             display_parameter(lcd_name, out_value, lcd_position);
             preferences.putInt(lcd_name, out_value);
         }

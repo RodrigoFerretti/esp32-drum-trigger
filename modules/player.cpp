@@ -108,6 +108,7 @@ struct player_t
 
         position += 1;
 
+        // could be done outside
         display_directory(directory.name(), position + 1);
         preferences.putInt("position", position);
     }
@@ -140,6 +141,7 @@ struct player_t
 
         load_samples();
 
+        // could be done outside
         display_directory(directory.name(), position + 1);
         preferences.putInt("position", position);
     }

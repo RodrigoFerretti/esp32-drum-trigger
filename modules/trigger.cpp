@@ -30,6 +30,7 @@ struct trigger_t
 
             float dynamic_multiplier = peak_sample / 4096.0 * (pow((4096.0 / peak_sample), (1.0 - (dynamic / 100.0))));
 
+            // could return the dynamic multiplier to clear dependecy
             player.trigger_sample(dynamic_multiplier);
 
             return;

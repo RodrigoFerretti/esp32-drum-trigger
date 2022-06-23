@@ -32,21 +32,17 @@ void setup()
 
 void loop()
 {
-    button_down.read();
-    button_up.read();
-    button_play.read();
-    
-    encoder_threshold.read();
-    encoder_resolution.read();
-    encoder_dynamic.read();
+    if (button_down.read())
+        player.navigate_down();
+    if (button_up.read())
+        player.navigate_up();
+    if (button_play.read())
+        player.trigger_sample(1);
 
-    trigger.threshold = encoder_threshold.out_value;
-    trigger.resolution = encoder_resolution.out_value;
-    trigger.dynamic = encoder_dynamic.out_value;
+    trigger.threshold = encoder_threshold.read() * 10;
+    trigger.resolution = encoder_resolution.read();
+    trigger.dynamic = encoder_dynamic.read();
 
-    piezo.sample = analogRead(piezo.pin);
-    high_pass_piezo.filter_sample(&piezo.sample);
-    high_pass_piezo.filter_sample(&piezo.sample);
-    trigger.scan_sample(piezo.sample);
-    i2s.stream();
+    // trigger.scan_sample(piezo.sample);
+    // i2s.stream();
 }
